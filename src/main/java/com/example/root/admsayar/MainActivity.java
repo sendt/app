@@ -9,22 +9,33 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
-             // sensoreventlistener sensorden gelen değişimleri anlık alınmasını sağlar.
+    private static final android.util.Log Log = null;
+    // sensoreventlistener sensorden gelen değişimleri anlık alınmasını sağlar.
 int adım_sayısı=0;
 boolean saymayadevam=false,
-        hedef=false;
+        hedef=false;   int durm=0;
 float son_x, ilk_y,son_z;
 float ilk_x,son_y,ilk_z;
-
+    int gelen_hedef;
 Sensor accelerometer;
 SensorManager sm;
 TextView acceleration,text;
+EditText hedefal;
 Button basla,bitir,hedef_bel,gecmisi_göster;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +44,9 @@ Button basla,bitir,hedef_bel,gecmisi_göster;
 
         //yy=i;
         //int  gelmis_sayi=gelen_mesaj.getInt("yoldakiveri");
-
+        //int deger = getIntent().getExtras().getInt("sayi");
+        //y=deger;
+        hedefal=(EditText)findViewById(R.id.hedefal);
         text=(TextView)findViewById(R.id.textView);
         basla=(Button)findViewById(R.id.basla);
         bitir=(Button)findViewById(R.id.bitir);
@@ -51,7 +64,7 @@ Button basla,bitir,hedef_bel,gecmisi_göster;
         switch (v.getId()){
             case R.id.basla:
                 adım_sayısı=0;
-                saymayadevam=true;
+                durm=1;
                 adım_sayısı=0;
                 break;
             case R.id.bitir:
@@ -59,35 +72,60 @@ Button basla,bitir,hedef_bel,gecmisi_göster;
                 text.setText(" toplam atılan adım sayısı:\n"+adım_sayısı);
                 break;
             case R.id.hedef:
-                hedef=true;
-                Intent intent=new Intent(MainActivity.this,Hedef.class);
-                startActivity(intent);
-
+                durm=2;
+              gelen_hedef=Integer.parseInt(hedefal.getText().toString());
+               // Intent intent=new Intent(MainActivity.this,Hedef.class);
+                //startActivity(intent);
                 break;
             case R.id.geçmişi_göster:
                 break;
         }
 
 
-       /* if(v.getId()==R.id.hedef_belirle){
-        //buraya alert dialog yazılacak
-        text.setText("hedef");
-        Intent intent=new Intent(MainActivity.this,Hedef.class);
-        startActivity(intent);
 
+    } //verilri kayıt edelim
+    private void writeToFile(String data,Context context) {
+        try {
+            OutputStreamWriter outputStreamWriter =
+                                  new OutputStreamWriter(context.openFileOutput("config.txt", Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
     }
-        if(v.getId()==R.id.basla){
-            adım_sayısı=0;
-            saymayadevam=true;
-                adım_sayısı=0;
+    /// veri okuyalım
+    private String readFromFile(Context context) {
+
+        String ret = "";
+
+        try {
+            InputStream inputStream = context.openFileInput("config.txt");
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
             }
-        if(v.getId()==R.id.bitir){
-            saymayadevam=false;
-            text.setText(" toplam atılan adım sayısı:\n"+adım_sayısı);
-        }*/
+        }
+        catch (FileNotFoundException e) {
+            Log.e("login activity", "File not found: " + e.toString());
+        } catch (IOException e) {
+            Log.e("login activity", "Can not read file: " + e.toString());
+        }
 
-
+        return ret;
     }
+
 
     @Override
     public void onSensorChanged(SensorEvent arg0) {
@@ -100,19 +138,21 @@ Button basla,bitir,hedef_bel,gecmisi_göster;
                 if(Math.abs(son_y-ilk_y)>=1.7){
                     adım_sayısı++;
                     son_y=ilk_y;
-                   if(saymayadevam && !hedef ) {
+
+
+                   if(durm==1  ) {
                        text.setText("atılan adım sayısı:\n" + adım_sayısı);
                    }
-                    else if(hedef){
-                       int deger = getIntent().getExtras().getInt("sayi");
-                        int u=deger-adım_sayısı;
-                        text.setText("son "+u+" adım");
-                    }
+                   if(durm==2)
+                    text.setText("son :\n" +( gelen_hedef - adım_sayısı)+" adım kaldı");
+                    //Date currentTime = Calendar.getInstance().getTime();
+
                 }
 
             }
             // vibrator.vibrate(500); ile titreşim ayarlanabilir..
     }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {

@@ -24,9 +24,10 @@ public class Hedef extends AppCompatActivity {
 
     }
     public  void tiklan(View v){
-        if(v.getId()==R.id.button);
-        Intent intent=new Intent(Hedef.this,MainActivity.class);
-        intent.putExtra("sayi",(int)(Integer.parseInt(edtxt.getText().toString())));
-        startActivity(intent);
+       // if(v.getId()==R.id.button);
+        //Intent intent=new Intent(Hedef.this,MainActivity.class);
+        //int sayi=(int)(Integer.parseInt(edtxt.getText().toString()));
+        //intent.putExtra("sayi",sayi);
+        //startActivity(intent);
     }
 }
